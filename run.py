@@ -1,12 +1,13 @@
-# run.py
+#run.py
 
 import tkinter as tk
 from tkinter import filedialog
-from ports import scan, choose_ip
+from ports import choose_ip, scan
 from banner_grabber import grab_banner
 from network_enumeration import arp_scan, icmp_ping_sweep
 from analyze_network_traffic import network_traffic_analysis
-
+from monitor import start_monitoring
+from validate_cve_data import perform_vulnerability_scan  # Import the function for vulnerability scanning
 def select_file():
     # Create the Tkinter root window
     root = tk.Tk()
@@ -20,13 +21,11 @@ if __name__ == "__main__":
     target = choose_ip()
 
     if target:
-        # Perform network enumeration (optional)
         choice = input("\nDo you want to perform network enumeration? (y/n): ")
         if choice.lower() == 'y':
             print("\nPerforming network enumeration...")
             subnet = input("Enter the subnet to scan (e.g., 192.168.1.0/24): ")
 
-            # ARP scan
             print("\nPerforming ARP scan...")
             devices = arp_scan()
             if devices:
@@ -36,7 +35,6 @@ if __name__ == "__main__":
             else:
                 print("No devices discovered via ARP scan.")
 
-            # ICMP ping sweep
             print("\nPerforming ICMP ping sweep...")
             live_hosts = icmp_ping_sweep(subnet)
             if live_hosts:
@@ -53,32 +51,36 @@ if __name__ == "__main__":
             file_path = select_file()
             network_traffic_analysis(file_path)
 
-        # Perform port scanning
-        ports = [
-            (21, "FTP (File Transfer Protocol)"),
-            (22, "SSH (Secure Shell)"),
-            (25, "SMTP (Simple Mail Transfer Protocol)"),
-            (53, "DNS (Domain Name System)"),
-            (80, "HTTP (Hypertext Transfer Protocol)"),
-            (110, "POP3 (Post Office Protocol version 3)"),
-            (143, "IMAP (Internet Message Access Protocol)"),
-            (443, "HTTPS (HTTP Secure)"),
-            (3389, "RDP (Remote Desktop Protocol)"),
-            (3306, "MySQL Database"),
-            (5432, "PostgreSQL Database"),
-            (1521, "Oracle Database"),
-            (8080, "HTTP Alternate")
-        ]
+        choice = input("\nDo you want to check for vulnerabilities? (y/n): ")
+        if choice.lower() == 'y':
+            perform_vulnerability_scan(target) # Call the vulnerability scanning function
 
-        total_points = 0
-        for port, context in ports:
-            print(f"\nScanning port {port} ({context})")
-            if not scan(target, port):
-                total_points += 1
+        choice = input("\nDo you want to perform port scanning? (y/n): ")
+        if choice.lower() == 'y':
+            ports = [
+                (21, "FTP (File Transfer Protocol)"),
+                (22, "SSH (Secure Shell)"),
+                (25, "SMTP (Simple Mail Transfer Protocol)"),
+                (53, "DNS (Domain Name System)"),
+                (80, "HTTP (Hypertext Transfer Protocol)"),
+                (110, "POP3 (Post Office Protocol version 3)"),
+                (143, "IMAP (Internet Message Access Protocol)"),
+                (443, "HTTPS (HTTP Secure)"),
+                (3389, "RDP (Remote Desktop Protocol)"),
+                (3306, "MySQL Database"),
+                (5432, "PostgreSQL Database"),
+                (1521, "Oracle Database"),
+                (8080, "HTTP Alternate")
+            ]
 
-        print(f"\nTotal points earned for closed ports: {total_points} / 13. ")
+            total_points = 0
+            for port, context in ports:
+                print(f"\nScanning port {port} ({context})")
+                if not scan(target, port):
+                    total_points += 1
 
-        # Prompt for banner grabbing
+            print(f"\nTotal closed ports: {total_points} / 13. ")
+
         choice = input("\nDo you want to grab banners for open ports? (y/n): ")
         if choice.lower() == 'y':
             for port, _ in ports:
@@ -90,3 +92,8 @@ if __name__ == "__main__":
                     print(f"Failed to grab banner from {target}:{port}")
         else:
             print("Banner grabbing skipped.")
+
+        choice = input("\nDo you want to start network monitoring? (y/n): ")
+        if choice.lower() == 'y':
+            interface = input("Enter the network interface to monitor (e.g., eth0): ")
+            start_monitoring(interface)

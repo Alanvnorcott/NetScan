@@ -29,11 +29,13 @@ def get_machine_ip():
     return None
 
 
+
 def choose_ip():
     print("\nChoose IP address:")
     print("1. Network IP")
     print("2. Machine IP")
-    choice = input("Enter your choice (1 or 2): ")
+    print("3. Custom IP")
+    choice = input("Enter your choice (1, 2, or 3): ")
     if choice == '1':
         network_ip = get_network_ip()
         print(f"Selected Network IP: {network_ip}")
@@ -42,6 +44,10 @@ def choose_ip():
         machine_ip = get_machine_ip()
         print(f"Selected Machine IP: {machine_ip}")
         return machine_ip
+    elif choice == '3':
+        custom_ip = input("Input IP number: ")
+        print(f"Selected Custom IP: {custom_ip}")
+        return custom_ip
     else:
         print("Invalid choice. Defaulting to machine IP.")
         machine_ip = get_machine_ip()
